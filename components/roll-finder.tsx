@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { Die } from "@/components/die"
 import { Board } from "@/components/board"
+import { MoveAnimation } from "@/components/move-animation"
 import {
   OPENINGS,
   START_POSITION,
@@ -163,10 +164,26 @@ export function RollFinder() {
         </div>
 
         {!isDoubles && opening && (
+          <div className="rounded-2xl bg-card p-5 text-card-foreground shadow-lg sm:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="font-heading text-lg font-bold">Watch the play</h4>
+              <span className="font-mono text-sm font-bold text-secondary">
+                {opening.play}
+              </span>
+            </div>
+            <p className="mt-1 mb-3 text-xs text-card-foreground/70">
+              The highlighted checkers glide from their starting points to where
+              they land.
+            </p>
+            <MoveAnimation moves={opening.moves} showReplay />
+          </div>
+        )}
+
+        {!isDoubles && opening && (
           <Board
             position={afterPosition}
             highlight={destinations}
-            caption="Position after the recommended play (your checkers are red, moving 24 → 1). Highlighted points are where your checkers land."
+            caption="Final position after the recommended play (your checkers are red, moving 24 → 1). Highlighted points are where your checkers land."
           />
         )}
       </div>

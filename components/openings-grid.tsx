@@ -1,4 +1,5 @@
 import { Die } from "@/components/die"
+import { MoveAnimation } from "@/components/move-animation"
 import { OPENINGS, type Tier } from "@/lib/openings"
 
 const TIER_STYLES: Record<Tier, string> = {
@@ -30,7 +31,10 @@ export function OpeningsGrid() {
           </div>
           <h3 className="mt-4 font-heading text-lg font-bold">{o.name}</h3>
           <p className="font-mono text-lg font-bold text-secondary">{o.play}</p>
-          <p className="mt-2 text-sm leading-relaxed text-card-foreground/75">
+          <div className="mt-3">
+            <MoveAnimation moves={o.moves} compact />
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-card-foreground/75">
             {o.explanation}
           </p>
         </article>
