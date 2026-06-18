@@ -352,7 +352,12 @@ export function MoveAnimation({
               boxShadow: moved
                 ? "inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.45)"
                 : "inset 0 1px 1px rgba(255,255,255,0.4), 0 6px 10px rgba(0,0,0,0.4)",
-              transform: `translate(-50%, -50%) scale(${moved ? 1 : 1.12})`,
+              // NOTE: centering is handled by the Tailwind `-translate-x-1/2
+              // -translate-y-1/2` classes (which use the standalone `translate`
+              // CSS property in Tailwind v4). The inline transform must ONLY
+              // scale — adding translate here double-shifts the checker so it
+              // lands off the point.
+              transform: `scale(${moved ? 1 : 1.12})`,
               transition: animate
                 ? "left 0.85s cubic-bezier(0.34, 1.2, 0.64, 1), top 0.85s cubic-bezier(0.34, 1.2, 0.64, 1), transform 0.85s ease, box-shadow 0.85s ease"
                 : "none",
