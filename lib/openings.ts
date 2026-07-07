@@ -192,13 +192,13 @@ export const OPENINGS: Opening[] = [
     name: "Split to the golden anchor",
     category: "Splitting",
     tier: "Average",
-    play: "24/20 13/9",
+    play: "24/20 13/8",
     moves: [
       [24, 20],
-      [13, 9],
+      [13, 8],
     ],
     explanation:
-      "Split to your opponent's 20-point — the 'golden anchor' spot — while dropping a builder. A balanced, flexible developing play.",
+      "Play the 4 to split to your opponent's 20-point — the 'golden anchor' spot — and the 5 to bring a checker safely down to your 8-point. A balanced, flexible developing play.",
     alternative: "24/15 (run) and 13/8 13/9 are reasonable alternatives.",
   },
   {
