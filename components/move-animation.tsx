@@ -62,14 +62,6 @@ function useInView<T extends HTMLElement>() {
   return { ref, inView }
 }
 
-interface Flyer {
-  color: "player" | "opponent"
-  startX: number
-  startY: number
-  endX: number
-  endY: number
-}
-
 function Checker({
   color,
   d,
@@ -112,60 +104,115 @@ export function MoveAnimation({
   const reduced = usePrefersReducedMotion()
   const { ref, inView } = useInView<HTMLDivElement>()
 
-  const [moved, setMoved] = useState(false)
+  // `step` is the current waypoint index the flying checkers have reached.
+  // 0 = at origin, 1 = first hop complete, 2 = second hop complete, etc.
+  const [step, setStep] = useState(0)
   const [animate, setAnimate] = useState(false)
   const timers = useRef<number[]>([])
 
   // Build the resting board (after the play) with destinations decremented by
   // the number of incoming "flying" checkers, plus the flyers themselves.
-  const { baseChips, flyers, destinations, overflow } = useMemo(() => {
-    const after = applyMoves(START_POSITION, moves)
-    const base = clonePosition(after)
+  const { baseChips, journeys, destinations, overflow, maxSegments } =
+    useMemo(() => {
+      const after = applyMoves(START_POSITION, moves)
+      const base = clonePosition(after)
 
-    const incoming: Record<number, number> = {}
-    for (const [, to] of moves) incoming[to] = (incoming[to] ?? 0) + 1
-    for (const dest of Object.keys(incoming).map(Number)) {
-      if (base[dest]) {
-        base[dest].count -= incoming[dest]
-        if (base[dest].count <= 0) delete base[dest]
+      const incoming: Record<number, number> = {}
+      for (const [, to] of moves) incoming[to] = (incoming[to] ?? 0) + 1
+      for (const dest of Object.keys(incoming).map(Number)) {
+        if (base[dest]) {
+          base[dest].count -= incoming[dest]
+          if (base[dest].count <= 0) delete base[dest]
+        }
       }
-    }
 
-    // static checkers to render
-    type Chip = { key: string; color: "player" | "opponent"; x: number; y: number }
-    const baseChips: Chip[] = []
-    const overflow: { x: number; y: number; n: number }[] = []
-    for (const k of Object.keys(base)) {
-      const p = Number(k)
-      const { cx, top } = pointMeta(p)
-      const { color, count } = base[p]
-      const visible = Math.min(count, 5)
-      for (let i = 0; i < visible; i++) {
-        baseChips.push({ key: `${p}-${i}`, color, x: cx, y: stackY(top, i) })
+      // static checkers to render
+      type Chip = {
+        key: string
+        color: "player" | "opponent"
+        x: number
+        y: number
       }
-      if (count > 5) overflow.push({ x: cx, y: stackY(top, 5), n: count - 5 })
-    }
-
-    // flyers: travel from origin (top of remaining origin stack) to destination
-    const destCounter: Record<number, number> = {}
-    const flyers: Flyer[] = moves.map(([from, to]) => {
-      const fromMeta = pointMeta(from)
-      const toMeta = pointMeta(to)
-      const fromIndex = base[from]?.count ?? 0
-      const land = (base[to]?.count ?? 0) + (destCounter[to] ?? 0)
-      destCounter[to] = (destCounter[to] ?? 0) + 1
-      return {
-        color: "player",
-        startX: fromMeta.cx,
-        startY: stackY(fromMeta.top, fromIndex),
-        endX: toMeta.cx,
-        endY: stackY(toMeta.top, land),
+      const baseChips: Chip[] = []
+      const overflow: { x: number; y: number; n: number }[] = []
+      for (const k of Object.keys(base)) {
+        const p = Number(k)
+        const { cx, top } = pointMeta(p)
+        const { color, count } = base[p]
+        const visible = Math.min(count, 5)
+        for (let i = 0; i < visible; i++) {
+          baseChips.push({ key: `${p}-${i}`, color, x: cx, y: stackY(top, i) })
+        }
+        if (count > 5) overflow.push({ x: cx, y: stackY(top, 5), n: count - 5 })
       }
-    })
 
-    const destinations = moves.map(([, to]) => to)
-    return { baseChips, flyers, overflow, destinations }
-  }, [moves])
+      // Chain moves that belong to a SINGLE checker, where one move's
+      // destination is the next move's origin (e.g. the 6-5 "Lover's Leap"
+      // 24/18/13). Each chain becomes one checker that travels through
+      // waypoints in sequence, rather than two checkers moving at once.
+      const chains: Move[][] = []
+      const used = new Array(moves.length).fill(false)
+      for (let i = 0; i < moves.length; i++) {
+        if (used[i]) continue
+        // Only start a chain from a "head": a move whose origin is not the
+        // destination of some other (unused) move.
+        const isHead = !moves.some(
+          (o, j) => j !== i && !used[j] && o[1] === moves[i][0],
+        )
+        if (!isHead) continue
+        const chain: Move[] = [moves[i]]
+        used[i] = true
+        let tail = moves[i][1]
+        let extended = true
+        while (extended) {
+          extended = false
+          for (let j = 0; j < moves.length; j++) {
+            if (!used[j] && moves[j][0] === tail) {
+              chain.push(moves[j])
+              used[j] = true
+              tail = moves[j][1]
+              extended = true
+              break
+            }
+          }
+        }
+        chains.push(chain)
+      }
+      // Safety net: any move not linked into a chain becomes its own journey.
+      for (let i = 0; i < moves.length; i++) {
+        if (!used[i]) {
+          chains.push([moves[i]])
+          used[i] = true
+        }
+      }
+
+      // Turn each chain into a path of board coordinates the checker glides
+      // through. The first point is the origin (top of the remaining stack);
+      // each subsequent point is a landing spot.
+      const destCounter: Record<number, number> = {}
+      const journeys = chains.map((chain) => {
+        const path: { x: number; y: number }[] = []
+        const first = chain[0]
+        const fromMeta = pointMeta(first[0])
+        const fromIndex = base[first[0]]?.count ?? 0
+        path.push({ x: fromMeta.cx, y: stackY(fromMeta.top, fromIndex) })
+        for (const [, to] of chain) {
+          const toMeta = pointMeta(to)
+          const land = (base[to]?.count ?? 0) + (destCounter[to] ?? 0)
+          destCounter[to] = (destCounter[to] ?? 0) + 1
+          path.push({ x: toMeta.cx, y: stackY(toMeta.top, land) })
+        }
+        return { color: "player" as const, path }
+      })
+
+      const destinations = chains.map((c) => c[c.length - 1][1])
+      const maxSegments = journeys.reduce(
+        (m, j) => Math.max(m, j.path.length - 1),
+        1,
+      )
+
+      return { baseChips, journeys, destinations, overflow, maxSegments }
+    }, [moves])
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((t) => clearTimeout(t))
@@ -176,23 +223,29 @@ export function MoveAnimation({
     clearTimers()
     // reset to origin instantly (no transition)
     setAnimate(false)
-    setMoved(false)
-    // glide forward
+    setStep(0)
+    // glide through each hop in sequence
     timers.current.push(
       window.setTimeout(() => {
         setAnimate(true)
-        setMoved(true)
+        setStep(1)
       }, 550),
     )
+    for (let s = 2; s <= maxSegments; s++) {
+      timers.current.push(
+        window.setTimeout(() => setStep(s), 550 + (s - 1) * 850),
+      )
+    }
     // hold, then loop
-    timers.current.push(window.setTimeout(() => runCycle(), 550 + 850 + 1700))
-  }, [clearTimers])
+    const total = 550 + maxSegments * 850 + 1700
+    timers.current.push(window.setTimeout(() => runCycle(), total))
+  }, [clearTimers, maxSegments])
 
   useEffect(() => {
     if (reduced) {
       // show final position, no motion
       setAnimate(false)
-      setMoved(true)
+      setStep(maxSegments)
       return
     }
     if (!inView) {
@@ -201,7 +254,7 @@ export function MoveAnimation({
     }
     runCycle()
     return clearTimers
-  }, [inView, reduced, runCycle, clearTimers])
+  }, [inView, reduced, runCycle, clearTimers, maxSegments])
 
   const replay = () => {
     if (reduced) return
@@ -270,41 +323,46 @@ export function MoveAnimation({
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          {flyers.map((f, i) => (
-            <line
-              key={i}
-              x1={f.startX}
-              y1={f.startY}
-              x2={f.endX}
-              y2={f.endY}
-              stroke="var(--color-primary)"
-              strokeWidth={0.8}
-              strokeDasharray="2 2"
-              strokeLinecap="round"
-              style={{
-                opacity: moved ? 0.55 : 0.15,
-                transition: "opacity 0.5s ease",
-              }}
-            />
-          ))}
+          {journeys.flatMap((j, ji) =>
+            j.path.slice(1).map((pt, si) => {
+              const prev = j.path[si]
+              return (
+                <line
+                  key={`${ji}-${si}`}
+                  x1={prev.x}
+                  y1={prev.y}
+                  x2={pt.x}
+                  y2={pt.y}
+                  stroke="var(--color-primary)"
+                  strokeWidth={0.8}
+                  strokeDasharray="2 2"
+                  strokeLinecap="round"
+                  style={{
+                    opacity: step > si ? 0.55 : 0.15,
+                    transition: "opacity 0.5s ease",
+                  }}
+                />
+              )
+            }),
+          )}
         </svg>
 
         {/* destination pulse rings */}
         {destinations.map((p, i) => {
-          const { cx, top } = pointMeta(p)
-          const y = stackY(top, 0)
+          const last = journeys[i].path[journeys[i].path.length - 1]
+          const arrived = step >= journeys[i].path.length - 1
           return (
             <div
-              key={`pulse-${i}`}
+              key={`pulse-${p}-${i}`}
               className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
               style={{
-                left: `${cx}%`,
-                top: `${y}%`,
+                left: `${last.x}%`,
+                top: `${last.y}%`,
                 width: `${d * 1.5}%`,
                 aspectRatio: "1",
                 border: "2px solid var(--color-primary)",
-                opacity: moved ? 1 : 0,
-                animation: moved ? "pulse 1.6s ease-in-out infinite" : "none",
+                opacity: arrived ? 1 : 0,
+                animation: arrived ? "pulse 1.6s ease-in-out infinite" : "none",
                 transition: "opacity 0.4s ease",
               }}
               aria-hidden="true"
@@ -339,31 +397,36 @@ export function MoveAnimation({
           </span>
         ))}
 
-        {/* flying checkers */}
-        {flyers.map((f, i) => (
-          <Checker
-            key={`flyer-${i}`}
-            color={f.color}
-            d={d}
-            style={{
-              left: `${moved ? f.endX : f.startX}%`,
-              top: `${moved ? f.endY : f.startY}%`,
-              zIndex: 20,
-              boxShadow: moved
-                ? "inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.45)"
-                : "inset 0 1px 1px rgba(255,255,255,0.4), 0 6px 10px rgba(0,0,0,0.4)",
-              // NOTE: centering is handled by the Tailwind `-translate-x-1/2
-              // -translate-y-1/2` classes (which use the standalone `translate`
-              // CSS property in Tailwind v4). The inline transform must ONLY
-              // scale — adding translate here double-shifts the checker so it
-              // lands off the point.
-              transform: `scale(${moved ? 1 : 1.12})`,
-              transition: animate
-                ? "left 0.85s cubic-bezier(0.34, 1.2, 0.64, 1), top 0.85s cubic-bezier(0.34, 1.2, 0.64, 1), transform 0.85s ease, box-shadow 0.85s ease"
-                : "none",
-            }}
-          />
-        ))}
+        {/* flying checkers — one per journey, moving through its waypoints */}
+        {journeys.map((j, i) => {
+          const idx = Math.min(step, j.path.length - 1)
+          const pos = j.path[idx]
+          const landed = step >= j.path.length - 1
+          return (
+            <Checker
+              key={`flyer-${i}`}
+              color={j.color}
+              d={d}
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                zIndex: 20,
+                boxShadow: landed
+                  ? "inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.45)"
+                  : "inset 0 1px 1px rgba(255,255,255,0.4), 0 6px 10px rgba(0,0,0,0.4)",
+                // NOTE: centering is handled by the Tailwind `-translate-x-1/2
+                // -translate-y-1/2` classes (which use the standalone `translate`
+                // CSS property in Tailwind v4). The inline transform must ONLY
+                // scale — adding translate here double-shifts the checker so it
+                // lands off the point.
+                transform: `scale(${landed ? 1 : 1.12})`,
+                transition: animate
+                  ? "left 0.85s cubic-bezier(0.34, 1.2, 0.64, 1), top 0.85s cubic-bezier(0.34, 1.2, 0.64, 1), transform 0.85s ease, box-shadow 0.85s ease"
+                  : "none",
+              }}
+            />
+          )
+        })}
       </div>
 
       {showReplay && !reduced && (
