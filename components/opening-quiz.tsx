@@ -8,10 +8,42 @@ import { OPENINGS, START_POSITION, applyMoves, type Opening } from "@/lib/openin
 
 const QUESTION_COUNT = 8
 
-function answerChoices(opening: Opening, index: number) {
-  const pool = OPENINGS.filter((candidate) => candidate.id !== opening.id)
-  const choices = [opening, pool[(index * 3) % pool.length], pool[(index * 3 + 5) % pool.length], pool[(index * 3 + 9) % pool.length]]
-  return choices
+function isLegalMove(position: typeof START_POSITION, from: number, to: number, distance: number) {
+  return to === from - distance && position[from]?.color === "player" && (position[to]?.color !== "opponent" || (position[to]?.count ?? 0) < 2)
+}
+
+function legalDistractors(opening: Opening) {
+  const [firstDie, secondDie] = opening.dice
+  const results: string[] = []
+  const seen = new Set([opening.play])
+
+  for (const [first, second] of [[firstDie, secondDie], [secondDie, firstDie]]) {
+    for (const from of [24, 13, 8, 6]) {
+      const firstTo = from - first
+      if (!isLegalMove(START_POSITION, from, firstTo, first)) continue
+      const afterFirst = applyMoves(START_POSITION, [[from, firstTo]])
+      for (const secondFrom of [24, 13, 8, 6, firstTo]) {
+        const secondTo = secondFrom - second
+        if (!isLegalMove(afterFirst, secondFrom, secondTo, second)) continue
+        const play = `${secondFrom}/${secondTo} ${from}/${firstTo}`
+        if (!seen.has(play)) {
+          seen.add(play)
+          results.push(play)
+        }
+        if (results.length === 3) return results
+      }
+    }
+  }
+
+  return results
+}
+
+function answerChoices(opening: Opening) {
+  const distractors = legalDistractors(opening)
+  return [
+    { id: opening.id, play: opening.play, name: opening.name, correct: true },
+    ...distractors.map((play, index) => ({ id: `${opening.id}-alternative-${index}`, play, name: "Legal alternative", correct: false })),
+  ]
 }
 
 export function OpeningQuiz() {
@@ -73,7 +105,7 @@ export function OpeningQuiz() {
     )
   }
 
-  const choices = answerChoices(opening, round)
+  const choices = answerChoices(opening)
   const resultPosition = answered ? applyMoves(START_POSITION, opening.moves) : START_POSITION
 
   return (
@@ -93,11 +125,17 @@ export function OpeningQuiz() {
 
       <div className="grid gap-6 pt-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-center">
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-center gap-3 rounded-xl bg-background/60 p-4 sm:justify-start">
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-background/80 p-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold">
+              <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full bg-checker-player ring-2 ring-checker-player/30" aria-hidden="true" />You · Red</span>
+              <span className="inline-flex items-center gap-2 text-muted-foreground"><span className="size-3 rounded-full bg-checker-opponent ring-2 ring-checker-opponent/30" aria-hidden="true" />Opponent · Black</span>
+            </div>
+            <div className="flex items-center justify-center gap-3 sm:justify-start">
             <Die value={opening.dice[0]} size={58} />
             <span className="font-heading text-2xl text-muted-foreground">+</span>
             <Die value={opening.dice[1]} size={58} />
             <span className="ml-2 text-sm text-muted-foreground">Your opening roll</span>
+            </div>
           </div>
           <Board position={resultPosition} highlight={answered ? opening.moves.map((move) => move[1]) : []} caption={answered ? `Best play: ${opening.play}` : "Study the starting position, then choose the best play."} />
         </div>
@@ -110,8 +148,8 @@ export function OpeningQuiz() {
           <div className="grid gap-3" role="group" aria-label="Opening play choices">
             {choices.map((choice) => {
               const isSelected = selected === choice.id
-              const isAnswer = answered && choice.id === opening.id
-              const isWrong = answered && isSelected && !isAnswer
+              const isAnswer = answered && choice.correct
+              const isWrong = answered && isSelected && !choice.correct
               return (
                 <button key={choice.id} type="button" onClick={() => choose(choice.id)} aria-pressed={isSelected} className={`flex min-h-16 items-center justify-between gap-3 rounded-xl border p-4 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isAnswer ? "border-primary bg-primary/15" : isWrong ? "border-secondary bg-secondary/15" : "border-border bg-background/45 hover:border-primary/70 hover:bg-primary/5"}`}>
                   <span>

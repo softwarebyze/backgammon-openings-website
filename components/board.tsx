@@ -14,7 +14,7 @@ function Checker({ color }: { color: "player" | "opponent" }) {
         background:
           color === "player"
             ? "radial-gradient(circle at 35% 30%, oklch(0.62 0.18 30), var(--color-checker-player))"
-            : "radial-gradient(circle at 35% 30%, oklch(0.32 0.02 60), var(--color-checker-opponent))",
+            : "radial-gradient(circle at 35% 30%, oklch(0.46 0.025 60), var(--color-checker-opponent))",
         boxShadow: "inset 0 1px 1px rgba(255,255,255,0.25), 0 1px 2px rgba(0,0,0,0.4)",
       }}
       aria-hidden="true"
