@@ -42,7 +42,9 @@ function answerChoices(opening: Opening) {
 }
 
 function tournamentSearchUrl(opening: Opening) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(`backgammon tournament opening ${opening.dice[0]}-${opening.dice[1]} ${opening.play}`)}`
+  const roll = `${opening.dice[0]}-${opening.dice[1]}`
+  const query = `backgammon "${opening.play}" "${roll}" opening roll match play`
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
 }
 
 export function OpeningQuiz() {
