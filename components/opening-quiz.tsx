@@ -109,32 +109,32 @@ export function OpeningQuiz() {
   const resultPosition = answered ? applyMoves(START_POSITION, opening.moves) : START_POSITION
 
   return (
-    <div className="rounded-2xl border-2 border-[#4a3028] bg-[#f7efdf] p-4 text-[#2a1914] shadow-xl sm:p-7">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#6b4a3d] pb-4">
+    <div className="rounded-2xl border-2 border-quiz-border bg-quiz-surface p-4 text-quiz-ink shadow-xl sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-quiz-border pb-4">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wider text-[#a84d25]">Question {round + 1} of {QUESTION_COUNT}</p>
-          <div className="mt-3 h-2 w-40 overflow-hidden rounded-full bg-[#d4c4ad] sm:w-56" aria-label={`${round} of ${QUESTION_COUNT} questions complete`}>
-            <div className="h-full rounded-full bg-[#b85c2c] transition-all" style={{ width: `${(round / QUESTION_COUNT) * 100}%` }} />
+          <p className="text-sm font-bold uppercase tracking-wider text-quiz-accent-strong">Question {round + 1} of {QUESTION_COUNT}</p>
+          <div className="mt-3 h-2 w-40 overflow-hidden rounded-full bg-quiz-option sm:w-56" aria-label={`${round} of ${QUESTION_COUNT} questions complete`}>
+            <div className="h-full rounded-full bg-quiz-accent transition-all" style={{ width: `${(round / QUESTION_COUNT) * 100}%` }} />
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm font-bold text-[#2a1914]">
-          <span>Score <strong className="text-[#a84d25]">{score}</strong></span>
-          <span>Streak <strong className="text-[#a84d25]">{streak}</strong></span>
+        <div className="flex items-center gap-4 text-sm font-bold text-quiz-ink">
+          <span>Score <strong className="text-quiz-accent-strong">{score}</strong></span>
+          <span>Streak <strong className="text-quiz-accent-strong">{streak}</strong></span>
         </div>
       </div>
 
       <div className="grid gap-6 pt-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-center">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 rounded-xl border border-foreground/30 bg-muted/80 p-4">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold">
-              <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full bg-checker-player ring-2 ring-checker-player/30" aria-hidden="true" />You · Red</span>
-              <span className="inline-flex items-center gap-2 text-foreground/90"><span className="size-3 rounded-full bg-checker-opponent ring-2 ring-foreground/40" aria-hidden="true" />Opponent · Black</span>
+          <div className="flex flex-col gap-3 rounded-xl border-2 border-quiz-border bg-quiz-panel p-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-bold text-quiz-ink">
+              <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full bg-checker-player ring-2 ring-checker-player/40" aria-hidden="true" />You · Red</span>
+              <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full bg-checker-opponent ring-2 ring-quiz-ink/50" aria-hidden="true" />Opponent · Black</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:justify-start">
             <Die value={opening.dice[0]} size={58} />
-            <span className="font-heading text-2xl text-muted-foreground">+</span>
+            <span className="font-heading text-2xl text-quiz-muted">+</span>
             <Die value={opening.dice[1]} size={58} />
-            <span className="ml-2 text-sm font-medium text-foreground/80">Your opening roll</span>
+            <span className="ml-2 text-sm font-semibold text-quiz-muted">Your opening roll</span>
             </div>
           </div>
           <Board position={resultPosition} highlight={answered ? opening.moves.map((move) => move[1]) : []} caption={answered ? `Best play: ${opening.play}` : "Study the starting position, then choose the best play."} />
@@ -142,8 +142,8 @@ export function OpeningQuiz() {
 
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-primary">Your move</p>
-            <h3 className="mt-2 font-heading text-2xl font-bold leading-tight">Which play is best for this roll?</h3>
+            <p className="text-sm font-bold uppercase tracking-wider text-quiz-accent-strong">Your move</p>
+            <h3 className="mt-2 font-heading text-2xl font-bold leading-tight text-quiz-ink">Which play is best for this roll?</h3>
           </div>
           <div className="grid gap-3" role="group" aria-label="Opening play choices">
             {choices.map((choice) => {
@@ -151,21 +151,21 @@ export function OpeningQuiz() {
               const isAnswer = answered && choice.correct
               const isWrong = answered && isSelected && !choice.correct
               return (
-                <button key={choice.id} type="button" onClick={() => choose(choice.id)} aria-pressed={isSelected} className={`flex min-h-16 items-center justify-between gap-3 rounded-xl border p-4 text-left text-foreground transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isAnswer ? "border-primary bg-primary/25" : isWrong ? "border-secondary bg-secondary/25" : "border-foreground/25 bg-muted/60 hover:border-primary hover:bg-muted"}`}>
+                <button key={choice.id} type="button" onClick={() => choose(choice.id)} aria-pressed={isSelected} className={`flex min-h-16 items-center justify-between gap-3 rounded-xl border-2 p-4 text-left text-quiz-ink transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-quiz-accent ${isAnswer ? "border-quiz-accent-strong bg-quiz-accent/20" : isWrong ? "border-secondary bg-secondary/15" : "border-quiz-border bg-quiz-option hover:border-quiz-accent-strong hover:bg-quiz-panel"}`}>
                   <span>
                     <span className="block font-mono text-base font-bold">{choice.play}</span>
-                    <span className="mt-1 block text-sm font-medium text-foreground/75">{choice.name}</span>
+                    <span className="mt-1 block text-sm font-medium text-quiz-muted">{choice.name}</span>
                   </span>
-                  {isAnswer && <Check aria-label="Correct answer" className="text-primary" />}
+                  {isAnswer && <Check aria-label="Correct answer" className="text-quiz-accent-strong" />}
                   {isWrong && <X aria-label="Incorrect answer" className="text-secondary" />}
                 </button>
               )
             })}
           </div>
           {answered && (
-            <div className={`rounded-xl border p-4 ${correct ? "border-primary/50 bg-primary/10" : "border-secondary/50 bg-secondary/10"}`} role="status">
-              <p className="font-semibold">{correct ? "Correct — great read." : `Not quite. The best play is ${opening.play}.`}</p>
-              <p className="mt-2 text-sm leading-relaxed text-foreground/80">{opening.explanation}</p>
+            <div className={`rounded-xl border-2 p-4 ${correct ? "border-quiz-accent-strong bg-quiz-accent/15" : "border-secondary/60 bg-secondary/10"}`} role="status">
+              <p className="font-bold text-quiz-ink">{correct ? "Correct — great read." : `Not quite. The best play is ${opening.play}.`}</p>
+              <p className="mt-2 text-sm leading-relaxed text-quiz-muted">{opening.explanation}</p>
               <button type="button" onClick={next} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{round === QUESTION_COUNT - 1 ? "See results" : "Next roll"}</button>
             </div>
           )}
