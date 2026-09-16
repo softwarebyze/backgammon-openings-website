@@ -109,7 +109,7 @@ export function OpeningQuiz() {
   const resultPosition = answered ? applyMoves(START_POSITION, opening.moves) : START_POSITION
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xl sm:p-7">
+    <div className="rounded-2xl border border-foreground/20 bg-background p-4 text-foreground shadow-xl sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-primary">Question {round + 1} of {QUESTION_COUNT}</p>
@@ -117,7 +117,7 @@ export function OpeningQuiz() {
             <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(round / QUESTION_COUNT) * 100}%` }} />
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm font-semibold">
+        <div className="flex items-center gap-4 text-sm font-semibold text-foreground/90">
           <span>Score <strong className="text-primary">{score}</strong></span>
           <span>Streak <strong className="text-primary">{streak}</strong></span>
         </div>
@@ -125,16 +125,16 @@ export function OpeningQuiz() {
 
       <div className="grid gap-6 pt-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-center">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 rounded-xl border border-border bg-background/80 p-4">
+          <div className="flex flex-col gap-3 rounded-xl border border-foreground/30 bg-muted/80 p-4">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold">
               <span className="inline-flex items-center gap-2"><span className="size-3 rounded-full bg-checker-player ring-2 ring-checker-player/30" aria-hidden="true" />You · Red</span>
-              <span className="inline-flex items-center gap-2 text-muted-foreground"><span className="size-3 rounded-full bg-checker-opponent ring-2 ring-checker-opponent/30" aria-hidden="true" />Opponent · Black</span>
+              <span className="inline-flex items-center gap-2 text-foreground/90"><span className="size-3 rounded-full bg-checker-opponent ring-2 ring-foreground/40" aria-hidden="true" />Opponent · Black</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:justify-start">
             <Die value={opening.dice[0]} size={58} />
             <span className="font-heading text-2xl text-muted-foreground">+</span>
             <Die value={opening.dice[1]} size={58} />
-            <span className="ml-2 text-sm text-muted-foreground">Your opening roll</span>
+            <span className="ml-2 text-sm font-medium text-foreground/80">Your opening roll</span>
             </div>
           </div>
           <Board position={resultPosition} highlight={answered ? opening.moves.map((move) => move[1]) : []} caption={answered ? `Best play: ${opening.play}` : "Study the starting position, then choose the best play."} />
@@ -151,10 +151,10 @@ export function OpeningQuiz() {
               const isAnswer = answered && choice.correct
               const isWrong = answered && isSelected && !choice.correct
               return (
-                <button key={choice.id} type="button" onClick={() => choose(choice.id)} aria-pressed={isSelected} className={`flex min-h-16 items-center justify-between gap-3 rounded-xl border p-4 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isAnswer ? "border-primary bg-primary/15" : isWrong ? "border-secondary bg-secondary/15" : "border-border bg-background/45 hover:border-primary/70 hover:bg-primary/5"}`}>
+                <button key={choice.id} type="button" onClick={() => choose(choice.id)} aria-pressed={isSelected} className={`flex min-h-16 items-center justify-between gap-3 rounded-xl border p-4 text-left text-foreground transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isAnswer ? "border-primary bg-primary/25" : isWrong ? "border-secondary bg-secondary/25" : "border-foreground/25 bg-muted/60 hover:border-primary hover:bg-muted"}`}>
                   <span>
                     <span className="block font-mono text-base font-bold">{choice.play}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">{choice.name}</span>
+                    <span className="mt-1 block text-sm font-medium text-foreground/75">{choice.name}</span>
                   </span>
                   {isAnswer && <Check aria-label="Correct answer" className="text-primary" />}
                   {isWrong && <X aria-label="Incorrect answer" className="text-secondary" />}
@@ -165,7 +165,7 @@ export function OpeningQuiz() {
           {answered && (
             <div className={`rounded-xl border p-4 ${correct ? "border-primary/50 bg-primary/10" : "border-secondary/50 bg-secondary/10"}`} role="status">
               <p className="font-semibold">{correct ? "Correct — great read." : `Not quite. The best play is ${opening.play}.`}</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{opening.explanation}</p>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/80">{opening.explanation}</p>
               <button type="button" onClick={next} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{round === QUESTION_COUNT - 1 ? "See results" : "Next roll"}</button>
             </div>
           )}
