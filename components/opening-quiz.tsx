@@ -109,17 +109,17 @@ export function OpeningQuiz() {
   const resultPosition = answered ? applyMoves(START_POSITION, opening.moves) : START_POSITION
 
   return (
-    <div className="rounded-2xl border border-foreground/20 bg-background p-4 text-foreground shadow-xl sm:p-7">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+    <div className="rounded-2xl border-2 border-[#4a3028] bg-[#f7efdf] p-4 text-[#2a1914] shadow-xl sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#6b4a3d] pb-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Question {round + 1} of {QUESTION_COUNT}</p>
-          <div className="mt-3 h-2 w-40 overflow-hidden rounded-full bg-muted sm:w-56" aria-label={`${round} of ${QUESTION_COUNT} questions complete`}>
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(round / QUESTION_COUNT) * 100}%` }} />
+          <p className="text-sm font-bold uppercase tracking-wider text-[#a84d25]">Question {round + 1} of {QUESTION_COUNT}</p>
+          <div className="mt-3 h-2 w-40 overflow-hidden rounded-full bg-[#d4c4ad] sm:w-56" aria-label={`${round} of ${QUESTION_COUNT} questions complete`}>
+            <div className="h-full rounded-full bg-[#b85c2c] transition-all" style={{ width: `${(round / QUESTION_COUNT) * 100}%` }} />
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm font-semibold text-foreground/90">
-          <span>Score <strong className="text-primary">{score}</strong></span>
-          <span>Streak <strong className="text-primary">{streak}</strong></span>
+        <div className="flex items-center gap-4 text-sm font-bold text-[#2a1914]">
+          <span>Score <strong className="text-[#a84d25]">{score}</strong></span>
+          <span>Streak <strong className="text-[#a84d25]">{streak}</strong></span>
         </div>
       </div>
 
