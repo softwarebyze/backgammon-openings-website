@@ -36,6 +36,14 @@
   --color-checker-player: var(--checker-player);
   --color-checker-opponent: var(--checker-opponent);
   --color-bar: var(--bar);
+  --color-quiz-surface: var(--quiz-surface);
+  --color-quiz-ink: var(--quiz-ink);
+  --color-quiz-muted: var(--quiz-muted);
+  --color-quiz-border: var(--quiz-border);
+  --color-quiz-panel: var(--quiz-panel);
+  --color-quiz-option: var(--quiz-option);
+  --color-quiz-accent: var(--quiz-accent);
+  --color-quiz-accent-strong: var(--quiz-accent-strong);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -57,7 +65,7 @@
   --secondary: oklch(0.51 0.16 29);
   --secondary-foreground: oklch(0.95 0.02 80);
   --muted: oklch(0.31 0.03 47);
-  --muted-foreground: oklch(0.74 0.025 72);
+  --muted-foreground: oklch(0.84 0.025 78);
   --accent: oklch(0.76 0.13 67);
   --accent-foreground: oklch(0.24 0.03 46);
   --destructive: oklch(0.55 0.18 28);
@@ -74,6 +82,16 @@
   --checker-player: oklch(0.52 0.17 27);
   --checker-opponent: oklch(0.22 0.015 60);
   --bar: oklch(0.21 0.03 44);
+
+  /* quiz palette: warm paper with ink-level text contrast */
+  --quiz-surface: oklch(0.95 0.025 86);
+  --quiz-ink: oklch(0.24 0.035 43);
+  --quiz-muted: oklch(0.39 0.035 43);
+  --quiz-border: oklch(0.53 0.055 42);
+  --quiz-panel: oklch(0.985 0.012 86);
+  --quiz-option: oklch(0.91 0.035 82);
+  --quiz-accent: oklch(0.52 0.16 38);
+  --quiz-accent-strong: oklch(0.42 0.14 34);
 }
 
 @layer base {

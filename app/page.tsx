@@ -1,6 +1,7 @@
 import { RollFinder } from "@/components/roll-finder"
 import { OpeningsGrid } from "@/components/openings-grid"
 import { Theory } from "@/components/theory"
+import { OpeningQuiz } from "@/components/opening-quiz"
 import { Die } from "@/components/die"
 
 export default function Page() {
@@ -15,6 +16,9 @@ export default function Page() {
           <div className="hidden gap-6 text-sm font-medium text-muted-foreground sm:flex">
             <a href="#finder" className="transition-colors hover:text-foreground">
               Roll Finder
+            </a>
+            <a href="#practice" className="transition-colors hover:text-foreground">
+              Practice
             </a>
             <a href="#openings" className="transition-colors hover:text-foreground">
               All Openings
@@ -46,10 +50,10 @@ export default function Page() {
               Try the Roll Finder
             </a>
             <a
-              href="#theory"
+              href="#practice"
               className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 font-semibold text-foreground transition-colors hover:bg-card hover:text-card-foreground"
             >
-              Learn the theory
+              Practice with a quiz
             </a>
           </div>
         </div>
@@ -70,6 +74,18 @@ export default function Page() {
           </p>
         </div>
         <RollFinder />
+      </section>
+
+      {/* Practice quiz */}
+      <section id="practice" className="scroll-mt-6 border-y border-border/60 bg-board-frame/30 px-4 py-14 sm:px-6 sm:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-wider text-primary">Practice</p>
+            <h2 className="mt-2 font-heading text-3xl font-bold sm:text-4xl">Can you spot the best play?</h2>
+            <p className="mt-3 leading-relaxed text-muted-foreground">Train your eye with quick visual rounds. Read the dice, scan the position, and build the right opening pattern into muscle memory.</p>
+          </div>
+          <OpeningQuiz />
+        </div>
       </section>
 
       {/* All openings */}

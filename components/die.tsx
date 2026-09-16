@@ -14,12 +14,14 @@ export function Die({
   size = 44,
   selected = false,
   interactive = false,
+  color = "neutral",
   onClick,
 }: {
   value: number
   size?: number
   selected?: boolean
   interactive?: boolean
+  color?: "neutral" | "player" | "opponent"
   onClick?: () => void
 }) {
   const pips = PIPS[value] ?? []
@@ -35,8 +37,11 @@ export function Die({
         height: size,
         padding: pad,
         boxSizing: "border-box",
-        background:
-          "linear-gradient(145deg, oklch(0.97 0.02 80), oklch(0.88 0.03 78))",
+        background: color === "player"
+          ? "linear-gradient(145deg, oklch(0.68 0.18 28), oklch(0.48 0.16 25))"
+          : color === "opponent"
+            ? "linear-gradient(145deg, oklch(0.32 0.03 44), oklch(0.18 0.03 44))"
+            : "linear-gradient(145deg, oklch(0.97 0.02 80), oklch(0.88 0.03 78))",
         boxShadow: selected
           ? "0 0 0 3px var(--color-primary), inset 0 1px 2px rgba(255,255,255,0.6)"
           : "inset 0 1px 2px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3)",
